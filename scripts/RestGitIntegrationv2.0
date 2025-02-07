@@ -1,0 +1,34 @@
+/**
+ * @NApiVersion 2.0
+ * @NScriptType Restlet
+ * @NModuleScope SameAccount
+ * File Name: IND_REST_GitHub_integration.js
+ * Script Name: IND_REST_GitHub_integration
+ * Script Id: 
+ * Date Created: 
+ * Author: Sai Jagadeesh(Yantra inc)
+ * Company: Yantra
+ * Description : 
+ */
+
+/*
+* Script Modification Log:
+* 
+-- Date --              -- Modified By --          --Requested By--                 -- Description --
+*
+*/
+define(['N/task', 'N/log', 'N/runtime'], function (task, log, runtime) {
+    var SUCCESS_RESPONSE = {};
+	var FAILED_RESPONSE = {};
+	var FINAL_REPONSE = [];
+    function gitHub_integration(context) {
+        try {
+            log.debug('Update code Received Data', JSON.stringify(context));
+        } catch (e) {
+        }
+    }
+
+    return {
+        post: gitHub_integration
+    };
+});
