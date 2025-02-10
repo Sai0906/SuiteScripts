@@ -1,0 +1,55 @@
+/*************************************************************
+ * File Header
+ * Script Type : UserEventScript
+ * Script Name : IND_UE_fileupdate
+ * File Name   : IND_UE_fileupdate.js
+ * Description : 
+ * Created On  : 
+ * Modification Details:  
+ ************************************************************/
+
+/**
+ * @NApiVersion 2.x
+ * @NScriptType UserEventScript
+ */
+define(['N/task', 'N/log'], function (task, log) {
+
+    function afterSubmit(context) {
+        try {
+            if (context.type !== context.UserEventType.EDIT) {
+                return;
+              }
+              var fileRecord = context.newRecord;
+              log.debug({
+                title: 'fileRecord',
+                details: fileRecord
+              })
+              var fileName = fileRecord.getValue({ fieldId: 'name' });
+              var fileContents = fileRecord.getValue({ fieldId: 'content' });
+              log.debug({
+                title: 'fileContents',
+                details: fileContents
+              })
+
+          
+             /*  // Create a log file in the file cabinet
+              var newFile = file.create({
+                name: fileName + '_UpdateLog.txt',
+                fileType: file.Type.PLAINTEXT,
+                contents: 'File "' + fileName + '" was updated. Contents:\n\n' + fileContents,
+                folder: 12345 // Change to your specific File Cabinet folder ID
+              });
+          
+              var fileId = newFile.save();
+              log.audit('File Created', 'File ID: ' + fileId); */
+
+        } catch (e) {
+            log.error('Error in the afterSubmit function', e);
+        }
+    }
+
+    return {
+        afterSubmit: afterSubmit
+        //beforeLoad: afterSubmit
+    };
+});
