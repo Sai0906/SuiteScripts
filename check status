@@ -1,0 +1,98 @@
+/**
+ * @NApiVersion 2.1
+ * @NScriptType Suitelet
+ */
+define(['N/task', 'N/ui/serverWidget'], 
+function(task, serverWidget) {
+
+    function onRequest(context) {
+        var request = context.request;
+        var response = context.response;
+        
+        if (request.method === 'GET') {
+            showForm(response);
+        } else if (request.method === 'POST') {
+            // THIS WILL BLOCK UNTIL MAP/REDUCE COMPLETES
+            handleButtonClick(request, response);
+        }
+    }
+
+    function showForm(response) {
+        var form = serverWidget.createForm({
+            title: 'Process Data'
+        });
+
+        form.addSubmitButton({
+            label: 'Start Processing'
+        });
+
+        form.clientScriptModulePath = './your_client_script.js';
+        response.writePage(form);
+    }
+
+    function handleButtonClick(request, response) {
+        // Submit Map/Reduce
+        var mapReduceTaskId = task.create({
+            taskType: task.TaskType.MAP_REDUCE,
+            scriptId: 'customscript_your_mr',
+            deploymentId: 'customdeploy_your_mr'
+        }).submit();
+        
+        // POLL UNTIL COMPLETED (THIS WILL BLOCK)
+        var isComplete = false;
+        var maxAttempts = 1800; // 30 minutes max (1 second intervals)
+        var attempts = 0;
+        
+        while (!isComplete && attempts < maxAttempts) {
+            attempts++;
+            
+            try {
+                var status = task.checkStatus({ taskId: mapReduceTaskId });
+                
+                if (status.status === task.TaskStatus.COMPLETE ||
+                    status.status === task.TaskStatus.FAILED ||
+                    status.status === task.TaskStatus.CANCELLED) {
+                    
+                    isComplete = true;
+                    
+                    // Only after completion, write the response
+                    if (status.status === task.TaskStatus.COMPLETE) {
+                        // Redirect to results page
+                        response.sendRedirect({
+                            url: '/app/site/hosting/scriptlet.nl?script=customscript_results&deploy=customdeploy_results'
+                        });
+                    } else {
+                        // Show error page
+                        response.write('Process failed with status: ' + status.status);
+                    }
+                } else {
+                    // Wait 1 second before checking again
+                    $sleep(1000);
+                }
+                
+            } catch (e) {
+                // Wait and retry
+                $sleep(1000);
+            }
+        }
+        
+        // If timed out
+        if (!isComplete) {
+            response.write('Process timeout after 30 minutes');
+        }
+    }
+
+    function $sleep(milliseconds) {
+        // Simple sleep function for NetSuite
+        var start = new Date().getTime();
+        for (var i = 0; i < 1e7; i++) {
+            if ((new Date().getTime() - start) > milliseconds) {
+                break;
+            }
+        }
+    }
+
+    return {
+        onRequest: onRequest
+    };
+});
